@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Document</title>
+	<link rel="stylesheet" type="text/css" href="http://cdn.datatables.net/1.10.15/css/jquery.dataTables.css">
+	<link rel="stylesheet" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/foundation/5.0.2/css/foundation.min.css">
+</head>
+	<style>
+		.mt-3 {
+			margin-top: 30px;
+		}
+	</style>
+<body>
+	<div class="row mt-3">
+		<!-- <div class="large-6 columns">
+			<label for="start">Start Date</label>
+			<input id="start" type="date" /><br />
+		</div>
+		<div class="large-6 columns">
+			<label for="end">End Date</label>
+			<input id="end" type="date" /><br />
+		</div> -->
+		<div class="large-6 columns">
+			<select id="selectType">
+				<option value="" disabled selected>-----</option>
+				<option value="水">水</option>
+				<option value="火">火</option>
+				<option value="土">土</option>
+				<option value="木">木</option>
+			</select>
+		</div>
+	</div>
+	<div class="row">
+		<div class="large-12 columns">
+			<!-- <button class="button radius" id="filter">Filter</button> -->
+			<button id="clearFilter" class="button radius secondary">Clear Filter</button>
+		</div>
+	</div>
+	<div class="row">
+		<div class="large-12 columns">
+			<table id="oTable">
+				<thead>
+					<tr>
+						<th>Name</th>
+						<th>Date</th>
+						<th>Type</th>
+					</tr>
+				</thead>
+			</table>
+		</div>
+	</div>
+
+	<script type="text/javascript" charset="utf8" src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+	<script type="text/javascript" charset="utf8"
+		src="http://cdn.datatables.net/1.10.15/js/jquery.dataTables.js"></script>
+	<script type="text/javascript">
+		let tableData = [];
+		const dataURL = 'https://geoser.epa.gov.tw/advserver/rest/services/Hosted/NGIS37_%E4%B8%8A%E6%9E%B6%E6%B8%85%E5%96%AEV2/FeatureServer/0/query?where=1%3D1&outFields=*&f=pjson';
+
+		$(() => {
+			// 取得環保署資料
+			$.ajax({
+				type: 'POST',
+				url: dataURL,
+				dataType: 'json',
+				success(rs) {
+					let data = rs.features;
+					let dataTitle = rs.fields; 
+					console.log(dataTitle);
+					dataTitle.forEach((item) => {
+						if(item.name === 'objectid' || item.name === 'url') return false;
+						
+					});
+				},
+				error(es) {
+					console.error(es);
+				}
+			})
+
+			let $tableSel = $('#oTable');
+			// 取得select元素
+			let select = document.getElementsByName('oTable_length');
+			let value;
+			
+			window.onload = function() {
+				$(select).change(function(e) {
+					e.preventDefault();
+					// 先判斷select是否有選擇
+					if(!value) return;
+					let selectType = $('#selectType').val();
+
+					console.log('12345');
+					// 初始化資料
+					// $.fn.dataTableExt.afnFiltering.length = 0;
+					// $tableSel.dataTable().fnDraw();
+				});
+			};
+
+			$tableSel.dataTable({
+				'aaData': dummyData,
+				'aoColumns': [
+					{ 'mData': 'name' },
+					{ 'mData': 'registered' },
+					{ 'mData': 'type'}
+				],
+				// 'sDom': '' // Hiding the datatables ui
+			});
+
+			$('#filter').on('click', function (e) {
+				e.preventDefault();
+				let startDate = $('#start').val();
+				let endDate = $('#end').val();
+				filterByDate(1, startDate, endDate); // We call our filter function
+				$tableSel.dataTable().fnDraw(); // Manually redraw the table after filtering
+			});
+
+			// Clear the filter. Unlike normal filters in Datatables,
+			// custom filters need to be removed from the afnFiltering array.
+			$('#clearFilter').on('click', function (e) {
+				e.preventDefault();
+				$.fn.dataTableExt.afnFiltering.length = 0;
+				$tableSel.dataTable().fnDraw();
+			});
+
+			$('#selectType').on('change', function() {
+				value = $(this).val();
+				fillterBySelect(2, value);
+				$tableSel.dataTable().fnDraw();
+			});
+		});
+
+		var fillterBySelect = function(column, value) {
+			$.fn.dataTableExt.afnFiltering.length = 0;
+			$.fn.dataTableExt.afnFiltering.push(
+				function(oSettings, aData, iDataIndex) {
+					if(aData[column] === value) {
+						tableData = [];
+						tableData.push(aData[column]);
+						return true;
+					}else {
+						return false;
+					}
+				}
+			);
+		};
+
+		var filterByDate = function (column = 1, startDate = '1992-03-12', endDate = '1992-12-01') {
+			// 自定義過濾器語法需要將新過濾器推送到全局過濾器數組
+			$.fn.dataTableExt.afnFiltering.push(
+				function (oSettings, aData, iDataIndex) {
+					// aData 每筆資料的陣列
+					// iDataIndex 每筆資料的索引
+
+					// 取得各資料日期、開始與結束時間
+					var rowDate = normalizeDate(aData[column]);
+					var start = normalizeDate(startDate);
+					var end = normalizeDate(endDate);
+					// console.log(rowDate); // 19920812
+					// console.log(start); // 19920301
+					// console.log(end); //19921231
+
+					// If our date from the row is between the start and end
+					if (start <= rowDate && rowDate <= end) {
+						return true;
+					} else if (rowDate >= start && end === '' && start !== '') {
+						return true;
+					} else if (rowDate <= end && start === '' && end !== '') {
+						return true;
+					} else {
+						return false;
+					}
+				}
+			);
+		};
+
+		// converts date strings to a Date object, then normalized into a YYYYMMMDD format (ex: 20131220). Makes comparing dates easier. ex: 20131220 > 20121220
+		var normalizeDate = function (dateString) {
+			var date = new Date(dateString);
+			var normalized = date.getFullYear() + '' + (("0" + (date.getMonth() + 1)).slice(-2)) + '' + ("0" + date.getDate()).slice(-2);
+			return normalized;
+		}
+
+		// $('input[name="oTable_length"]').on('change', function() {
+		// 	console.log('wgjhjt');
+		// });
+
+		// Filler data for demo (thanks to http://json-generator.com)
+		var dummyData = [
+			{
+				"name": "Chasity Stanton",
+				"registered": "1992-08-12",
+				"type": "水"
+			},
+			{
+				"name": "Mcgowan Vance",
+				"registered": "2010-06-25",
+				"type": "火"
+			},
+			{
+				"name": "Craig Hill",
+				"registered": "1992-08-11",
+				"type": "水"
+			},
+			{
+				"name": "Lois Elliott",
+				"registered": "2003-02-22",
+				"type": "火"
+			},
+			{
+				"name": "Gross Frost",
+				"registered": "2005-09-02",
+				"type": "土"
+			},
+			{
+				"name": "Debra Emerson",
+				"registered": "2003-05-29",
+				"type": "木"
+			},
+			{
+				"name": "Leona Wilkinson",
+				"registered": "1991-01-22",
+				"type": "土"
+			},
+			{
+				"name": "Elena Puckett",
+				"registered": "1996-06-21",
+				"type": "木"
+			},
+			{
+				"name": "Mcintosh Hudson",
+				"registered": "1992-12-13",
+				"type": "土"
+			},
+			{
+				"name": "Chasity Stanton",
+				"registered": "1992-08-12",
+				"type": "水"
+			},
+			{
+				"name": "Mcgowan Vance",
+				"registered": "2010-06-25",
+				"type": "火"
+			},
+			{
+				"name": "Craig Hill",
+				"registered": "1992-08-11",
+				"type": "水"
+			},
+			{
+				"name": "Lois Elliott",
+				"registered": "2003-02-22",
+				"type": "火"
+			},
+			{
+				"name": "Gross Frost",
+				"registered": "2005-09-02",
+				"type": "土"
+			},
+			{
+				"name": "Debra Emerson",
+				"registered": "2003-05-29",
+				"type": "木"
+			},
+			{
+				"name": "Leona Wilkinson",
+				"registered": "1991-01-22",
+				"type": "土"
+			},
+			{
+				"name": "Elena Puckett",
+				"registered": "1996-06-21",
+				"type": "木"
+			},
+			{
+				"name": "Mcintosh Hudson",
+				"registered": "1992-12-13",
+				"type": "土"
+			},
+			{
+				"name": "Chasity Stanton",
+				"registered": "1992-08-12",
+				"type": "水"
+			},
+			{
+				"name": "Mcgowan Vance",
+				"registered": "2010-06-25",
+				"type": "火"
+			},
+			{
+				"name": "Craig Hill",
+				"registered": "1992-08-11",
+				"type": "水"
+			},
+			{
+				"name": "Lois Elliott",
+				"registered": "2003-02-22",
+				"type": "火"
+			},
+			{
+				"name": "Gross Frost",
+				"registered": "2005-09-02",
+				"type": "土"
+			},
+			{
+				"name": "Debra Emerson",
+				"registered": "2003-05-29",
+				"type": "木"
+			},
+			{
+				"name": "Leona Wilkinson",
+				"registered": "1991-01-22",
+				"type": "土"
+			},
+			{
+				"name": "Elena Puckett",
+				"registered": "1996-06-21",
+				"type": "木"
+			},
+			{
+				"name": "Mcintosh Hudson",
+				"registered": "1992-12-13",
+				"type": "土"
+			},
+			{
+				"name": "Chasity Stanton",
+				"registered": "1992-08-12",
+				"type": "水"
+			},
+			{
+				"name": "Mcgowan Vance",
+				"registered": "2010-06-25",
+				"type": "火"
+			},
+			{
+				"name": "Craig Hill",
+				"registered": "1992-08-11",
+				"type": "水"
+			},
+			{
+				"name": "Lois Elliott",
+				"registered": "2003-02-22",
+				"type": "火"
+			},
+			{
+				"name": "Gross Frost",
+				"registered": "2005-09-02",
+				"type": "土"
+			},
+			{
+				"name": "Debra Emerson",
+				"registered": "2003-05-29",
+				"type": "木"
+			},
+			{
+				"name": "Leona Wilkinson",
+				"registered": "1991-01-22",
+				"type": "土"
+			},
+			{
+				"name": "Elena Puckett",
+				"registered": "1996-06-21",
+				"type": "木"
+			},
+			{
+				"name": "Mcintosh Hudson",
+				"registered": "1992-12-13",
+				"type": "土"
+			},
+			{
+				"name": "Mcintosh Hudson",
+				"registered": "1992-12-13",
+				"type": "火"
+			},
+			{
+				"name": "Mcintosh Hudson",
+				"registered": "1992-12-13",
+				"type": "火"
+			},
+			{
+				"name": "Mcintosh Hudson",
+				"registered": "1992-12-13",
+				"type": "火"
+			},
+			{
+				"name": "Mcintosh Hudson",
+				"registered": "1992-12-13",
+				"type": "火"
+			},
+			{
+				"name": "Mcintosh Hudson",
+				"registered": "1992-12-13",
+				"type": "火"
+			},
+			{
+				"name": "Mcintosh Hudson",
+				"registered": "1992-12-13",
+				"type": "火"
+			},
+		];
+	</script>
+</body>
+
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css"/>
+  <style>
+    @media (min-width: 1000px) {
+			#table1 {
+				line-height: 34px;
+			}
+		}
+  </style>
+</head>
+<body>
+  <select id="selectType">
+    <option value="" disabled selected>-----</option>
+  </select>
+
+  <table id="table1" class="display" style="width:100%"></table>
+
+  <!--引用jQuery-->
+	<script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.js"></script>
+	<!--引用dataTables.js-->
+	<script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+  <script type="text/javascript">
+    var fillterBySelect = function(column, value) {
+			$.fn.dataTableExt.afnFiltering.length = 0;
+			$.fn.dataTableExt.afnFiltering.push(
+				function(oSettings, aData, iDataIndex) {
+          if(value === '') {
+            return true;
+          };
+					if(aData[column] === value) {
+						return true;
+					}else {
+						return false;
+					};
+				}
+			);
+		};
+
+    $(document).ready(function () {
+      $.ajax({
+        type: "POST",
+        url: "https://geoser.epa.gov.tw/advserver/rest/services/Hosted/NGIS37_%E4%B8%8A%E6%9E%B6%E6%B8%85%E5%96%AEV2/FeatureServer/0/query?where=1%3D1&outFields=*&f=pjson",
+        dataType: "json",
+        success: function(resultData) {
+          // 存放資料
+          var tableTitle = resultData.fields;
+          var tabledata = resultData.features;
+          var dataTitleAry = [];
+          var dataTitleobj = {};
+          // 過濾及篩檢表格標題顯示資料
+          for(var i = 0; i < tableTitle.length; i++) {
+            var dataTitleType = tableTitle[i].name;
+            if(dataTitleType === 'objectid') continue;
+            dataTitleobj.sTitle = dataTitleType;
+            dataTitleobj.mData = dataTitleType;
+            dataTitleAry.push(dataTitleobj);
+            dataTitleobj = {};
+          };
+          // 存放內容顯示資料
+          var dataAry = [];
+          var dataObj = {};
+          // 過濾及篩檢表格內容顯示資料
+          for(var z = 0; z < tabledata.length; z++) {
+            dataObj = tabledata[z].attributes;
+            dataAry.push(dataObj);
+          };
+          dataAry.filter(item => {
+            // 去掉不要的屬性
+            if(item.hasOwnProperty('objectid')) {
+              delete item.objectid;
+            };
+          });
+
+          // datatables格式
+          var opt = {
+            "oLanguage": {"sUrl":"dataTables.zh-tw.txt"},
+            "bJQueryUI": true,
+            "deferRender": true,
+            "processing": true, // 加載提示
+            // 標題顯示
+            "aoColumns": dataTitleAry,
+            // 資料顯示
+            "aaData": dataAry,
+            "aoColumnDefs": [
+              {
+                "aTargets": [8],
+                // 將連結網址置換成a連結標籤
+                "mRender": function (data, type, row) {
+                  return `<a href='${data}'>顯示圖表</a>`;
+                },
+              }, 
+            ],
+          };         
+          var $table = $("#table1").dataTable(opt);
+
+          var select = $('#selectType');
+          var value;
+          $('#selectType').on('change', function() {
+            value = $(this).val();
+            // 用資料索引匹配值
+            fillterBySelect(3, value);
+            $table.dataTable().fnDraw();
+          });
+
+          // 動態新增select
+          // <option value="">全部</option>
+          // <option value="土基會">土基會</option>
+          // <option value="督察總隊">督察總隊</option>
+          // <option value="廢管處">廢管處</option>
+          // <option value="空保處">空保處</option>
+          // <option value="監資處">監資處</option>
+          // <option value="環管處">環管處</option>
+          // <option value="化學局">化學局</option>
+          
+        },
+        error: function(err) {
+          console.error(err);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <link href="http://ajax.aspnetcdn.com/ajax/jquery.ui/1.10.2/themes/hot-sneaks/jquery-ui.css" rel="stylesheet">
+  <link href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css" rel="stylesheet">
+</head>
+<body>
+  <table id="table1"></table>
+  <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.0.min.js"></script>
+  <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.ui/1.10.2/jquery-ui.min.js"></script>
+  <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
+  <script type="text/javascript">
+    $(document).ready(function () {
+      $.ajax({
+        type: "POST",
+        url: "https://geoser.epa.gov.tw/advserver/rest/services/Hosted/NGIS37_%E4%B8%8A%E6%9E%B6%E6%B8%85%E5%96%AEV2/FeatureServer/0/query?where=1%3D1&outFields=*&f=pjson",
+        data: "",
+        dataType: "json",
+        success: function(resultData) {
+          // 存放資料
+          var tableTitle = resultData.fields;
+          var tabledata = resultData.features;
+          var dataTitleAry = [];
+          var dataTitleobj = {};
+          // 過濾及篩檢表格標題顯示資料
+          for(var i = 0; i < tableTitle.length; i++) {
+            var dataTitleType = tableTitle[i].name;
+            if(dataTitleType === 'objectid') continue;
+            dataTitleobj.sTitle = dataTitleType;
+            dataTitleobj.mData = `${dataTitleType}`;
+            dataTitleAry.push(dataTitleobj);
+            dataTitleobj = {};
+          };
+          // 存放內容顯示資料
+          var dataAry = [];
+          var dataObj = {};
+          // 過濾及篩檢表格內容顯示資料
+          for(var z = 0; z < tabledata.length; z++) {
+            dataObj = tabledata[z].attributes;
+            dataAry.push(dataObj);
+          };
+          dataAry.filter(item => {
+            // 去掉不要的屬性
+            if(item.hasOwnProperty('objectid')) {
+              delete item.objectid;
+            };
+          });
+          // 將連結網址置換成a連結標籤
+          // console.log(dataAry);
+          // dataAry.forEach(item => {
+          //   var getURL = item.url;
+          //   var getStr = `<a href='${getURL}'>顯示圖表</a>`;
+          //   dataAry.url = getStr;
+          // });
+          // console.log(dataAry);
+          
+
+          // datatables格式
+          var opt = {
+            "oLanguage": {"sUrl":"dataTables.zh-tw.txt"},
+            "bJQueryUI": true,
+            "deferRender": true,
+            "aoColumns": dataTitleAry,
+            "aaData": dataAry,
+            "aoColumnDefs": [
+              {
+                "aTargets": [8],
+                "mRender": function (data, type, row) {
+                  return `<a href='${data}'>顯示圖表</a>`;
+                },
+              }, 
+            ],
+          };         
+          var table = $("#table1").dataTable(opt);
+
+          
+
+        },
+        error: function(err) {
+          console.error(err);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
