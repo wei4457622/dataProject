@@ -6,13 +6,6 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Document</title>
   <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css"/>
-  <style>
-    @media (min-width: 1000px) {
-			#table1 {
-				line-height: 34px;
-			}
-		}
-  </style>
 </head>
 <body>
   <select id="selectType">
@@ -57,9 +50,11 @@
         dataType: "json",
         success: function(resultData) {
           // 存放資料
-          console.log(resultData);
+          // console.log(resultData);
           var tableTitle = resultData.fields;
           var tabledata = resultData.features;
+          // console.log(tableTitle);
+          // console.log(tabledata);
           var dataTitleAry = [];
           var dataTitleobj = {};
           // 過濾及篩檢表格標題顯示資料
@@ -74,11 +69,30 @@
           // 存放內容顯示資料
           var dataAry = [];
           var dataObj = {};
+          var selectOrigin = [];
+
           // 過濾及篩檢表格內容顯示資料
           for(var z = 0; z < tabledata.length; z++) {
             dataObj = tabledata[z].attributes;
             dataAry.push(dataObj);
+
+            // 取得select判斷條件
+            // var dataLen = tabledata[z].attributes['權責單位'];
+            // selectOrigin.push(dataLen);
           };
+          // console.log(selectOrigin);
+
+          // 過濾重複資料
+          // var selectResult = new Set();
+          // selectOrigin.forEach(item => {
+          //   if(item === '') return;
+          //   selectResult.has(item) ? '' : selectResult.add(item);
+          // })
+          // for (var  of selectResult) {
+          //   console.log(key);
+          //   console.log(value);
+          // };
+
           dataAry.filter(item => {
             // 去掉不要的屬性
             if(item.hasOwnProperty('objectid')) {
@@ -116,17 +130,6 @@
             fillterBySelect(3, value);
             $table.dataTable().fnDraw();
           });
-
-          // 動態新增select
-          // <option value="">全部</option>
-          // <option value="土基會">土基會</option>
-          // <option value="督察總隊">督察總隊</option>
-          // <option value="廢管處">廢管處</option>
-          // <option value="空保處">空保處</option>
-          // <option value="監資處">監資處</option>
-          // <option value="環管處">環管處</option>
-          // <option value="化學局">化學局</option>
-          
         },
         error: function(err) {
           console.error(err);
