@@ -35,6 +35,12 @@
     //   parent.document.getElementById("frame").height = document.body.scrollHeight; //將子頁面高度傳到父頁面框架
     // };
 
+    function reSize(){
+  　　//parent.document.all.frameid.height=document.body.scrollHeight;
+  　　parent.document.getElementById("frame").height=document.body.scrollHeight;
+    }
+    window.onload = reSize;
+
     var fillterBySelect = function(column, value) {
 			$.fn.dataTableExt.afnFiltering.length = 0;
 			$.fn.dataTableExt.afnFiltering.push(
