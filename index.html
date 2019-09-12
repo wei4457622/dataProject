@@ -7,7 +7,7 @@
   <title>Document</title>
   <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css"/>
 </head>
-<body onload="resize();">
+<body>
   <select id="selectType">
     <option value="" disabled selected>-----</option>
     <option value="">全部</option>
@@ -41,11 +41,6 @@
 				}
 			);
 		};
-
-    function resize() {
-      console.log(parent);
-      parent.document.getElementById("frame").height = document.body.scrollHeight; //將子頁面高度傳到父頁面框架
-    }
 
     $(document).ready(function () {
       $.ajax({
