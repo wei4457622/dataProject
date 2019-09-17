@@ -41,29 +41,7 @@
 	<!--引用dataTables.js-->
 	<script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
   <script type="text/javascript">
-
-    // var d1 = new Date(2019, 9, 12);
-    // var d2 = new Date(2019, 9, 16);
-    // var day = ((d2 - d1) / (1000 * 60 * 60 * 24));
-    // // console.log(day);
-    // console.log(d1.getFullYear());
-    // console.log(d1.getMonth());
-    // console.log(d1.getDate());
-
-    // var message = {s:"close",filePath:filePath};
-    // window.parent.postMessage(message, '*');
-
-    // function resize() {
-    //   console.log(document.body.scrollHeight);
-    //   parent.document.getElementById("frame").height = document.body.scrollHeight; //將子頁面高度傳到父頁面框架
-    // };
-
-    function reSize(){
-  　　//parent.document.all.frameid.height=document.body.scrollHeight;
-  　　parent.document.getElementById("frame").height=document.body.scrollHeight;
-    }
-    window.onload = reSize;
-
+    // 如果是true資料會顯示，如果false則不會
     var fillterBySelect = function(column, value) {
 			$.fn.dataTableExt.afnFiltering.length = 0;
 			$.fn.dataTableExt.afnFiltering.push(
@@ -87,14 +65,11 @@
         dataType: "json",
         success: function(resultData) {
           // 存放資料
-          console.log(resultData);
-
           var tableTitle = resultData.fields;
           var tabledata = resultData.features;
-          // console.log(tableTitle);
-          // console.log(tabledata);
           var dataTitleAry = [];
           var dataTitleobj = {};
+
           // 過濾及篩檢表格標題顯示資料
           for(var i = 0; i < tableTitle.length; i++) {
             var dataTitleType = tableTitle[i].name;
@@ -107,11 +82,9 @@
           // 存放內容顯示資料
           var dataAry = [];
           var dataObj = {};
-          var selectOrigin = [];
 
           // 過濾及篩檢表格內容顯示資料
           for(var z = 0; z < tabledata.length; z++) {
-
             var timeType = tabledata[z].attributes['資料最新時間'];
             if(timeType) {
               // 轉換日期格式
@@ -122,28 +95,11 @@
               var dateStr = getDateYear + '/' + getDateMonth + '/' + getDateDay;
               tabledata[z].attributes['資料最新時間'] = dateStr;
             };
-
             dataObj = tabledata[z].attributes;
             dataAry.push(dataObj);
-
-            // 取得select判斷條件
-            // var dataLen = tabledata[z].attributes['權責單位'];
-            // selectOrigin.push(dataLen);
           };
-          // console.log(selectOrigin);
 
-          // 過濾重複資料
-          // var selectResult = new Set();
-          // selectOrigin.forEach(item => {
-          //   if(item === '') return;
-          //   selectResult.has(item) ? '' : selectResult.add(item);
-          // })
-          // for (var  of selectResult) {
-          //   console.log(key);
-          //   console.log(value);
-          // };
-
-          dataAry.filter(item => {
+          dataAry.filter(function(item) {
             // 去掉不要的屬性
             if(item.hasOwnProperty('objectid')) {
               delete item.objectid;
@@ -180,9 +136,6 @@
             fillterBySelect(3, value);
             $table.dataTable().fnDraw();
           });
-
-          // var table1 = document.getElementsByName('table1_length');
-          // console.log(table1);
         },
         error: function(err) {
           console.error(err);
