@@ -42,6 +42,14 @@
 	<script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
   <script type="text/javascript">
 
+    // var d1 = new Date(2019, 9, 12);
+    // var d2 = new Date(2019, 9, 16);
+    // var day = ((d2 - d1) / (1000 * 60 * 60 * 24));
+    // // console.log(day);
+    // console.log(d1.getFullYear());
+    // console.log(d1.getMonth());
+    // console.log(d1.getDate());
+
     // var message = {s:"close",filePath:filePath};
     // window.parent.postMessage(message, '*');
 
@@ -79,7 +87,8 @@
         dataType: "json",
         success: function(resultData) {
           // 存放資料
-          // console.log(resultData);
+          console.log(resultData);
+
           var tableTitle = resultData.fields;
           var tabledata = resultData.features;
           // console.log(tableTitle);
@@ -102,6 +111,18 @@
 
           // 過濾及篩檢表格內容顯示資料
           for(var z = 0; z < tabledata.length; z++) {
+
+            var timeType = tabledata[z].attributes['資料最新時間'];
+            if(timeType) {
+              // 轉換日期格式
+              var getDate = new Date(timeType);
+              var getDateYear = getDate.getFullYear();
+              var getDateMonth = getDate.getMonth();
+              var getDateDay = getDate.getDay();
+              var dateStr = getDateYear + '/' + getDateMonth + '/' + getDateDay;
+              tabledata[z].attributes['資料最新時間'] = dateStr;
+            };
+
             dataObj = tabledata[z].attributes;
             dataAry.push(dataObj);
 
