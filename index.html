@@ -23,6 +23,13 @@
   </style>
 </head>
 <body>
+  <!-- <input id="example" value="Hello World">
+    
+      屬性設定[註1] 
+     data-clipboard-target: 目標物件，將會複製物件的內容
+    
+  <button id="copy" data-clipboard-target="">複製</button> -->
+
   <select id="selectType">
     <option value="" disabled selected>-----</option>
     <option value="">全部</option>
@@ -36,11 +43,15 @@
   </select>
   <table id="table1" class="display" style="width:100%"></table>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js"></script>
   <!--引用jQuery-->
 	<script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.js"></script>
 	<!--引用dataTables.js-->
 	<script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
   <script type="text/javascript">
+    // 引用點擊複製功能
+    new Clipboard( ".copyLink" );
+
     // 如果是true資料會顯示，如果false則不會
     var fillterBySelect = function(column, value) {
 			$.fn.dataTableExt.afnFiltering.length = 0;
@@ -108,6 +119,10 @@
 
           // datatables格式
           var opt = {
+            "initComplete": function(settings, json) {
+              var rr = $('.copyLink');
+              console.log(rr);
+            },
             "oLanguage": {"sUrl":"dataTables.zh-tw.txt"},
             "bJQueryUI": true,
             "deferRender": true,
@@ -118,10 +133,14 @@
             "aaData": dataAry,
             "aoColumnDefs": [
               {
+                // 選取第九個aoColumns項目
                 "aTargets": [8],
                 // 將連結網址置換成a連結標籤
                 "mRender": function (data, type, row) {
-                  return `<a href='${data}'>顯示圖表</a>`;
+                  console.log(data);
+                  console.log(type);
+                  console.log(row);
+                  return `<a href="#" class="copyLink" data-clipboard-text="${data}">複製連結</a>`;
                 },
               }, 
             ],
