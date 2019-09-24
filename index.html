@@ -10,6 +10,7 @@
     div#table1_wrapper {
       overflow: auto;
       height: 900px;
+      font-family: Microsoft JhengHei, Arial, Helvetica, sans-serif;
     }
     select#selectType {
       position: absolute;
@@ -20,6 +21,50 @@
       z-index: 6;
       position: relative;
     }
+    #table1 td:nth-child(9) {
+      position: relative;
+    }
+    /* .copyLink:hover::before, .copyLink:hover::after {
+      display: inline-block;
+    } */
+    .copyLink.show::before, .copyLink.show::after {
+      display: block;
+    }
+    .copyLink::before {
+      display: none;
+      content: "已複製";
+      z-index: 5;
+      position: absolute;
+      top: 91%;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      color: white;
+      word-wrap: break-word;
+      white-space: pre;
+      pointer-events: none;
+      padding: 8px 10px;
+      font-size: 12px;
+      background: rgba(0,0,0,0.75);
+      border-radius: 3px;
+    }
+    .copyLink::after {
+      display: none;
+      position: absolute;
+      content: "";
+      z-index: 5;
+      bottom: 8%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      pointer-events: none;
+      border-bottom: solid 7px rgba(0,0,0,0.75);
+      border-right: solid 7px transparent;
+      border-left: solid 7px transparent;
+    }
+
+    
   </style>
 </head>
 <body>
@@ -119,9 +164,16 @@
 
           // datatables格式
           var opt = {
+            // 初始化完畢後載入
+            // 如果要等表格載入完再執行就寫在裡面
             "initComplete": function(settings, json) {
-              var rr = $('.copyLink');
-              console.log(rr);
+              $('.copyLink').click(function() {
+                var _this = $(this);
+                _this.addClass('show');
+                setTimeout(function() {
+                  _this.removeClass('show');
+                }, 2000);
+              });
             },
             "oLanguage": {"sUrl":"dataTables.zh-tw.txt"},
             "bJQueryUI": true,
@@ -137,9 +189,6 @@
                 "aTargets": [8],
                 // 將連結網址置換成a連結標籤
                 "mRender": function (data, type, row) {
-                  console.log(data);
-                  console.log(type);
-                  console.log(row);
                   return `<a href="#" class="copyLink" data-clipboard-text="${data}">複製連結</a>`;
                 },
               }, 
@@ -155,6 +204,8 @@
             fillterBySelect(3, value);
             $table.dataTable().fnDraw();
           });
+
+         
         },
         error: function(err) {
           console.error(err);
