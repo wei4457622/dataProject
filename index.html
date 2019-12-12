@@ -8,8 +8,8 @@
   <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css"/>
   <style>
     div#table1_wrapper {
-      overflow: auto;
-      height: 900px;
+      /* overflow: auto; */
+      /* height: 900px; */
       font-family: Microsoft JhengHei, Arial, Helvetica, sans-serif;
     }
     select#selectType {
@@ -164,6 +164,7 @@
 
           // datatables格式
           var opt = {
+            "lengthMenu": [10],
             // 初始化完畢後載入
             // 如果要等表格載入完再執行就寫在裡面
             "initComplete": function(settings, json) {
@@ -205,7 +206,6 @@
             $table.dataTable().fnDraw();
           });
 
-         
         },
         error: function(err) {
           console.error(err);
